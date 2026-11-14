@@ -23,6 +23,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 5. Installed Nginx and replaced its default page with a custom homelab page.
 6. Performed a controlled outage: stopped Nginx, inspected the service status and shutdown messages, restarted Nginx, and verified that the page loaded afterward.
 7. Rebooted the server and verified that SSH and Nginx returned to active status and the page remained available.
+8. Practiced restoring the custom page from a verified local copy and confirmed it loaded again.
 
 ## Health baseline
 
@@ -57,8 +58,21 @@ systemctl --failed --no-pager
 
 **Recovery and verification:** Started Nginx, confirmed its status was `active`, and refreshed the page successfully. Rebooted the server afterward and confirmed that SSH, Nginx, and the page were available again.
 
+## Page restore drill
+
+**Date:** November 14, 2026.
+
+**Preparation:** Copied `/var/www/html/index.html` to `~/homelab-backups/index.html` and used `cmp` to confirm the files matched.
+
+**Simulation:** Moved the live page to `index.html.offline`, then restored `index.html` from the copy in the home directory.
+
+**Verification:** `cmp` confirmed the restored file matched the backup, and the custom page loaded in the browser again.
+
+This was a restore exercise using a second copy on the same SSD. It does not protect against failure of that SSD.
+
 ## Next steps
 
 - Record a simple network diagram and a short setup/recovery runbook.
 - Configure SSH key authentication, then test it before changing password-login settings.
-- Add a small monitoring or backup-and-restore exercise.
+- Add basic service and system monitoring.
+- Make a backup on a separate device and test restoring from it.
