@@ -25,6 +25,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 7. Rebooted the server and verified that SSH and Nginx returned to active status and the page remained available.
 8. Practiced restoring the custom page from a verified local copy and confirmed it loaded again.
 9. Created a health check script and scheduled it with cron to record Nginx status and root filesystem usage every five minutes.
+10. Configured a dedicated Ed25519 SSH key on the administration laptop and verified key-based login in the server's SSH logs.
 
 ## Health baseline
 
@@ -83,9 +84,15 @@ The server runs it every five minutes through the user's crontab:
 
 `crontab -l` shows the schedule, and `tail -n 8 ~/homelab/health.log` shows recent output. This records checks in a local log; it does not send an alert if Nginx stops.
 
+## SSH key login
+
+**Date:** November 15, 2026.
+
+Created a dedicated Ed25519 key pair on the administration MacBook. Added its public key to `~/.ssh/authorized_keys` for the `dylan` account on the Ubuntu server. A subsequent SSH login specified that key and disabled the ordinary password authentication method. The server log showed `Accepted publickey for dylan`, confirming that the key was used. The private key remains on the administration MacBook and is not part of this repository.
+
 ## Next steps
 
 - Record a simple network diagram and a short setup/recovery runbook.
-- Configure SSH key authentication, then test it before changing password-login settings.
+- Decide whether to disable password-based SSH login after confirming a recovery path.
 - Add an alert for failed health checks and a log retention policy.
 - Make a backup on a separate device and test restoring from it.
