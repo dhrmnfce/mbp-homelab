@@ -24,6 +24,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 6. Performed a controlled outage: stopped Nginx, inspected the service status and shutdown messages, restarted Nginx, and verified that the page loaded afterward.
 7. Rebooted the server and verified that SSH and Nginx returned to active status and the page remained available.
 8. Practiced restoring the custom page from a verified local copy and confirmed it loaded again.
+9. Created a health check script and scheduled it with cron to record Nginx status and root filesystem usage every five minutes.
 
 ## Health baseline
 
@@ -70,9 +71,21 @@ systemctl --failed --no-pager
 
 This was a restore exercise using a second copy on the same SSD. It does not protect against failure of that SSD.
 
+## Scheduled health check
+
+`healthcheck.sh` prints the check time, whether Nginx is active, and root filesystem usage. The script correctly reported `inactive` during a controlled Nginx stop and `active` after the service was restarted.
+
+The server runs it every five minutes through the user's crontab:
+
+```cron
+*/5 * * * * /home/dylan/homelab/healthcheck.sh >> /home/dylan/homelab/health.log 2>&1
+```
+
+`crontab -l` shows the schedule, and `tail -n 8 ~/homelab/health.log` shows recent output. This records checks in a local log; it does not send an alert if Nginx stops.
+
 ## Next steps
 
 - Record a simple network diagram and a short setup/recovery runbook.
 - Configure SSH key authentication, then test it before changing password-login settings.
-- Add basic service and system monitoring.
+- Add an alert for failed health checks and a log retention policy.
 - Make a backup on a separate device and test restoring from it.
