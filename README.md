@@ -26,6 +26,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 8. Practiced restoring the custom page from a verified local copy and confirmed it loaded again.
 9. Created a health check script and scheduled it with cron to record Nginx status and root filesystem usage every five minutes.
 10. Configured a dedicated Ed25519 SSH key on the administration laptop and verified key-based login in the server's SSH logs.
+11. Wrote and tested a recovery guide during a controlled Nginx outage, verifying both service status and the page from another computer.
 
 ## Health baseline
 
@@ -92,7 +93,8 @@ Created a dedicated Ed25519 key pair on the administration MacBook. Added its pu
 
 ## Next steps
 
-- Record a simple network diagram and a short setup/recovery runbook.
+- Keep the tested [recovery guide](RECOVERY.md) current as the setup changes.
+- Record a simple network diagram.
 - Decide whether to disable password-based SSH login after confirming a recovery path.
 - Add an alert for failed health checks and a log retention policy.
 - Make a backup on a separate device and test restoring from it.
