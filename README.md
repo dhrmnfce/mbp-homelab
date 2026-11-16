@@ -28,6 +28,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 10. Configured a dedicated Ed25519 SSH key on the administration laptop and verified key-based login in the server's SSH logs.
 11. Wrote and tested a recovery guide during a controlled Nginx outage, verifying both service status and the page from another computer.
 12. Documented the confirmed home network path between the administration laptop, router, and Ubuntu server.
+13. Extended the scheduled health check to test an HTTP response and return a failure exit code; verified both success and outage behavior.
 
 ## Health baseline
 
@@ -76,7 +77,7 @@ This was a restore exercise using a second copy on the same SSD. It does not pro
 
 ## Scheduled health check
 
-`healthcheck.sh` prints the check time, whether Nginx is active, and root filesystem usage. The script correctly reported `inactive` during a controlled Nginx stop and `active` after the service was restarted.
+`healthcheck.sh` prints the check time, Nginx service state, HTTP reachability, and root filesystem usage. It requests `http://127.0.0.1/` from the server itself. It exits with code `0` when Nginx is active and the HTTP request succeeds, or `1` when either check fails. Filesystem usage is shown for inspection; the script does not yet apply a disk-usage threshold. The local HTTP request does not test reachability from another computer.
 
 The server runs it every five minutes through the user's crontab:
 
@@ -85,6 +86,8 @@ The server runs it every five minutes through the user's crontab:
 ```
 
 `crontab -l` shows the schedule, and `tail -n 8 ~/homelab/health.log` shows recent output. This records checks in a local log; it does not send an alert if Nginx stops.
+
+**Test on November 16, 2026:** With Nginx intentionally stopped, the new script printed `Nginx: inactive` and `HTTP: failed` and returned exit code `1`. After Nginx was restarted and the new script replaced the scheduled version, it printed `Nginx: active` and `HTTP: reachable` and returned `0`. The cron log's 19:50 UTC entry included `HTTP: reachable`, confirming that cron ran the new version. The previous script remains on the server as `healthcheck.sh.previous` for rollback.
 
 ## SSH key login
 
