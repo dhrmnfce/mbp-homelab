@@ -22,3 +22,5 @@ Old MacBook Pro (Ubuntu Server, hostname: homelab-mbp)
 The server address used during setup and testing was `192.168.1.179`. It is assigned by DHCP, so it can change. Run `hostname -I` on the server to check its current address.
 
 An SSH request from the main MacBook reaches the server's SSH service. A browser request to `http://192.168.1.179/` reaches Nginx, which returns the custom page. These connections have been tested on the home network. This diagram does not show a publicly accessible website or remote access from outside the home.
+
+For monitoring, the server also sends an **outbound** HTTPS check-in to Healthchecks.io after each scheduled health check. Healthchecks.io can send an email when it receives a failure signal or expected check-ins stop arriving. The server does not accept incoming connections from Healthchecks.io.

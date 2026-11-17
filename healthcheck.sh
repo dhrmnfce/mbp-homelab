@@ -15,4 +15,22 @@ else
 fi
 
 df -h /
+
+# Read the private ping URL from the server, then report this check's result.
+hc_file=/home/dylan/.config/homelab/healthchecks-url
+if [ -r "$hc_file" ]; then
+  hc_url=$(cat "$hc_file")
+  if [ -n "$hc_url" ]; then
+    if curl --fail --silent --show-error --max-time 10 --output /dev/null "${hc_url%/}/$status"; then
+      echo "Healthchecks: reported exit code $status"
+    else
+      echo "Healthchecks: report failed"
+    fi
+  else
+    echo "Healthchecks: URL file is empty"
+  fi
+else
+  echo "Healthchecks: URL file is missing or unreadable"
+fi
+
 exit "$status"

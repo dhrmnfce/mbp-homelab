@@ -1,6 +1,6 @@
 # Homelab recovery guide
 
-Use this checklist when the homelab webpage or SSH connection is unavailable. The server is the Ubuntu MacBook Pro; the administration laptop is the MacBook used to connect to it.
+Use this checklist when the homelab webpage or SSH connection is unavailable, or when a Healthchecks.io alert arrives. The server is the Ubuntu MacBook Pro; the administration laptop is the MacBook used to connect to it.
 
 ## 1. Check the server and address
 

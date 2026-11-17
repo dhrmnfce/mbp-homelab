@@ -30,6 +30,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 12. Documented the confirmed home network path between the administration laptop, router, and Ubuntu server.
 13. Extended the scheduled health check to test an HTTP response and return a failure exit code; verified both success and outage behavior.
 14. Added and tested weekly log rotation for the health-check log, with four compressed older copies retained.
+15. Connected the health check to an external heartbeat service, verified a failure email and recovery status, and confirmed cron sends automatic check-ins.
 
 ## Health baseline
 
@@ -86,7 +87,7 @@ The server runs it every five minutes through the user's crontab:
 */5 * * * * /home/dylan/homelab/healthcheck.sh >> /home/dylan/homelab/health.log 2>&1
 ```
 
-`crontab -l` shows the schedule, and `tail -n 8 ~/homelab/health.log` shows recent output. This records checks in a local log; it does not send an alert if Nginx stops.
+`crontab -l` shows the schedule, and `tail -n 8 ~/homelab/health.log` shows recent output. Each run records its result locally and sends its exit code to Healthchecks.io.
 
 **Test on November 16, 2026:** With Nginx intentionally stopped, the new script printed `Nginx: inactive` and `HTTP: failed` and returned exit code `1`. After Nginx was restarted and the new script replaced the scheduled version, it printed `Nginx: active` and `HTTP: reachable` and returned `0`. The cron log's 19:50 UTC entry included `HTTP: reachable`, confirming that cron ran the new version. The previous script remains on the server as `healthcheck.sh.previous` for rollback.
 
@@ -95,6 +96,12 @@ The server runs it every five minutes through the user's crontab:
 The tested [logrotate rule](healthcheck.logrotate) is installed on the server at `/etc/logrotate.d/homelab-health`. It rotates `health.log` weekly, keeps four compressed older logs, and creates a new log owned by `dylan` with mode `0644`. The enabled `logrotate.timer` checks log files daily; the rule determines when this log is due for rotation.
 
 **Test on November 17, 2026:** A debug run accepted the root-owned rule and reported `Handling 1 logs`. A forced real rotation compressed the prior 21 KB log into a 728-byte `health.log.1.gz` and created a new empty `health.log`. The 13:20 UTC cron run then appended a successful health check to the new log.
+
+## External heartbeat alert
+
+Healthchecks.io expects a check-in from the five-minute cron job and has email notification enabled. The script reads the unique Ping URL from `/home/dylan/.config/homelab/healthchecks-url` on the server; that private file is not in this repository. It reports exit code `0` when the Nginx and local HTTP checks pass, or `1` when either fails. A missing check-in can also indicate that cron, the server, or its network connection is unavailable. The missing-check-in path has not yet been deliberately tested.
+
+**Test on November 17, 2026:** Manual success and failure pings changed the external check between Up and Down, and the failure notification arrived by email. The updated script then reported `1` during a controlled Nginx stop and `0` after recovery. After the tested script replaced the scheduled version, a new `Healthchecks: reported exit code 0` entry appeared in `health.log` and the external check's latest ping time advanced.
 
 ## SSH key login
 
@@ -107,5 +114,5 @@ Created a dedicated Ed25519 key pair on the administration MacBook. Added its pu
 - Keep the tested [recovery guide](RECOVERY.md) current as the setup changes.
 - Keep the [network diagram](NETWORK.md) current if the connection or address changes.
 - Decide whether to disable password-based SSH login after confirming a recovery path.
-- Add a notification for failed health checks.
+- Test the missing-check-in alert path and document the result.
 - Make a backup on a separate device and test restoring from it.
