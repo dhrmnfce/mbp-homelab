@@ -1,0 +1,9 @@
+/home/dylan/homelab/health.log {
+    weekly
+    rotate 4
+    compress
+    missingok
+    notifempty
+    create 0644 dylan dylan
+    su dylan dylan
+}

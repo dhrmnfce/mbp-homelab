@@ -29,6 +29,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 11. Wrote and tested a recovery guide during a controlled Nginx outage, verifying both service status and the page from another computer.
 12. Documented the confirmed home network path between the administration laptop, router, and Ubuntu server.
 13. Extended the scheduled health check to test an HTTP response and return a failure exit code; verified both success and outage behavior.
+14. Added and tested weekly log rotation for the health-check log, with four compressed older copies retained.
 
 ## Health baseline
 
@@ -89,6 +90,12 @@ The server runs it every five minutes through the user's crontab:
 
 **Test on November 16, 2026:** With Nginx intentionally stopped, the new script printed `Nginx: inactive` and `HTTP: failed` and returned exit code `1`. After Nginx was restarted and the new script replaced the scheduled version, it printed `Nginx: active` and `HTTP: reachable` and returned `0`. The cron log's 19:50 UTC entry included `HTTP: reachable`, confirming that cron ran the new version. The previous script remains on the server as `healthcheck.sh.previous` for rollback.
 
+## Log retention
+
+The tested [logrotate rule](healthcheck.logrotate) is installed on the server at `/etc/logrotate.d/homelab-health`. It rotates `health.log` weekly, keeps four compressed older logs, and creates a new log owned by `dylan` with mode `0644`. The enabled `logrotate.timer` checks log files daily; the rule determines when this log is due for rotation.
+
+**Test on November 17, 2026:** A debug run accepted the root-owned rule and reported `Handling 1 logs`. A forced real rotation compressed the prior 21 KB log into a 728-byte `health.log.1.gz` and created a new empty `health.log`. The 13:20 UTC cron run then appended a successful health check to the new log.
+
 ## SSH key login
 
 **Date:** November 15, 2026.
@@ -100,5 +107,5 @@ Created a dedicated Ed25519 key pair on the administration MacBook. Added its pu
 - Keep the tested [recovery guide](RECOVERY.md) current as the setup changes.
 - Keep the [network diagram](NETWORK.md) current if the connection or address changes.
 - Decide whether to disable password-based SSH login after confirming a recovery path.
-- Add an alert for failed health checks and a log retention policy.
+- Add a notification for failed health checks.
 - Make a backup on a separate device and test restoring from it.
