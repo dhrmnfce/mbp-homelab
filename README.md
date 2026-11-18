@@ -31,6 +31,7 @@ Practice the installation, remote administration, service operation, troubleshoo
 13. Extended the scheduled health check to test an HTTP response and return a failure exit code; verified both success and outage behavior.
 14. Added and tested weekly log rotation for the health-check log, with four compressed older copies retained.
 15. Connected the health check to an external heartbeat service, verified a failure email and recovery status, and confirmed cron sends automatic check-ins.
+16. Simulated missed check-ins while the server remained healthy, then verified the external alert and recovery.
 
 ## Health baseline
 
@@ -99,9 +100,11 @@ The tested [logrotate rule](healthcheck.logrotate) is installed on the server at
 
 ## External heartbeat alert
 
-Healthchecks.io expects a check-in from the five-minute cron job and has email notification enabled. The script reads the unique Ping URL from `/home/dylan/.config/homelab/healthchecks-url` on the server; that private file is not in this repository. It reports exit code `0` when the Nginx and local HTTP checks pass, or `1` when either fails. A missing check-in can also indicate that cron, the server, or its network connection is unavailable. The missing-check-in path has not yet been deliberately tested.
+Healthchecks.io expects a check-in from the five-minute cron job and has email notification enabled. The script reads the unique Ping URL from `/home/dylan/.config/homelab/healthchecks-url` on the server; that private file is not in this repository. It reports exit code `0` when the Nginx and local HTTP checks pass, or `1` when either fails. A missing check-in can also indicate that cron, the server, or its network connection is unavailable.
 
 **Test on November 17, 2026:** Manual success and failure pings changed the external check between Up and Down, and the failure notification arrived by email. The updated script then reported `1` during a controlled Nginx stop and `0` after recovery. After the tested script replaced the scheduled version, a new `Healthchecks: reported exit code 0` entry appeared in `health.log` and the external check's latest ping time advanced.
+
+**Test on November 18, 2026:** Temporarily renamed the private Ping URL file so the healthy server and cron job could no longer send check-ins. The external check moved to Down and sent an email. Restored the file and ran the health check to return the external check to Up. This tested missing-ping detection without shutting down the server.
 
 ## SSH key login
 
@@ -114,5 +117,4 @@ Created a dedicated Ed25519 key pair on the administration MacBook. Added its pu
 - Keep the tested [recovery guide](RECOVERY.md) current as the setup changes.
 - Keep the [network diagram](NETWORK.md) current if the connection or address changes.
 - Decide whether to disable password-based SSH login after confirming a recovery path.
-- Test the missing-check-in alert path and document the result.
 - Make a backup on a separate device and test restoring from it.
